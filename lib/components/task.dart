@@ -6,16 +6,24 @@ class Task extends StatefulWidget {
   final String foto;
   final int dificuldade;
 
-  const Task(this.nome, this.foto, this.dificuldade, {Key? key})
+  Task(this.nome, this.foto, this.dificuldade, {Key? key})
       : super(key: key);
+
+  int nivel = 0;
+  int cor = 0;
 
   @override
   State<Task> createState() => _TaskState();
 }
 
 class _TaskState extends State<Task> {
-  int nivel = 0;
-  int cor = 0;
+
+  bool assetsOrNetwork() {
+    if (widget.foto.contains('http')) {
+      return false;
+    }
+    return true;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -50,12 +58,16 @@ class _TaskState extends State<Task> {
                       width: 72,
                       height: 100,
                       child: ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Image.asset(
-                          widget.foto,
-                          fit: BoxFit.cover,
-                        ),
-                      ),
+                          borderRadius: BorderRadius.circular(8),
+                          child: assetsOrNetwork()
+                              ? Image.asset(
+                                  widget.foto,
+                                  fit: BoxFit.cover,
+                                )
+                              : Image.network(
+                                  widget.foto,
+                                  fit: BoxFit.cover,
+                                )),
                     ),
                     Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -78,20 +90,21 @@ class _TaskState extends State<Task> {
                       height: 52,
                       width: 52,
                       child: ElevatedButton(
-                        style: ButtonStyle(
-                          backgroundColor: MaterialStateProperty.resolveWith<Color?>((states){
-                            return taskColor();
-                          }),
-                        ),
+                          style: ButtonStyle(
+                            backgroundColor:
+                                MaterialStateProperty.resolveWith<Color?>(
+                                    (states) {
+                              return taskColor();
+                            }),
+                          ),
                           onPressed: () {
                             setState(() {
-                              nivel++;
-                              if((nivel/widget.dificuldade) > 10){
-                                nivel = 0;
-                                cor++;
+                              widget.nivel++;
+                              if ((widget.nivel / widget.dificuldade) > 10) {
+                                widget.nivel = 0;
+                                widget.cor++;
                               }
                             });
-                            // print(nivel);
                           },
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -119,7 +132,7 @@ class _TaskState extends State<Task> {
                         backgroundColor: taskColor()[100],
                         color: Colors.white,
                         value: (widget.dificuldade > 0)
-                            ? (nivel / widget.dificuldade) / 10
+                            ? (widget.nivel / widget.dificuldade) / 10
                             : 1,
                       ),
                     ),
@@ -127,7 +140,7 @@ class _TaskState extends State<Task> {
                   Padding(
                     padding: const EdgeInsets.all(12),
                     child: Text(
-                      'Nível: $nivel',
+                      'Nível: ${widget.nivel}',
                       style: const TextStyle(color: Colors.white, fontSize: 16),
                     ),
                   ),
@@ -140,10 +153,10 @@ class _TaskState extends State<Task> {
     );
   }
 
-  taskColor(){
-    switch(cor){
+  taskColor() {
+    switch (widget.cor) {
       case 1:
-        return Colors.green ;
+        return Colors.green;
       case 2:
         return Colors.yellow;
       case 3:
@@ -154,5 +167,4 @@ class _TaskState extends State<Task> {
         return Colors.blue;
     }
   }
-
 }

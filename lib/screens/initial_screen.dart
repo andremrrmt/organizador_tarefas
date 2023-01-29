@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:nosso_primeiro_projeto/components/task.dart';
+import 'package:nosso_primeiro_projeto/data/task_inherited.dart';
+import 'package:nosso_primeiro_projeto/screens/form_screen.dart';
 
 class InitialScreen extends StatefulWidget {
-
   const InitialScreen({Key? key}) : super(key: key);
 
   @override
@@ -10,7 +10,21 @@ class InitialScreen extends StatefulWidget {
 }
 
 class _InitialScreenState extends State<InitialScreen> {
-  bool opacidade = true;
+  double levelTotal = 0.0;
+
+  void level() {
+    levelTotal = TaskInherted.of(context)
+        .taskList
+        .map((task) => task.nivel / task.dificuldade)
+        .reduce((a, b) => a + b);
+  }
+
+  int barra() {
+    return TaskInherted.of(context)
+        .taskList
+        .map((task) => task.dificuldade * 10)
+        .reduce((a, b) => a + b);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -18,43 +32,58 @@ class _InitialScreenState extends State<InitialScreen> {
       appBar: AppBar(
         leading: Container(),
         title: const Text('Tarefas'),
-      ),
-      body: AnimatedOpacity(
-        opacity: opacidade ? 1 : 0,
-        duration: const Duration(microseconds: 800),
-        child: ListView(
-          children: const [
-            Task(
-                'Aprender Flutter',
-                'assets/images/flutter.png',
-                4),
-            Task(
-                'Pedalar',
-                'assets/images/bike.jpg',
-                2),
-            Task(
-                'Correr',
-                'assets/images/corrida.jpg',
-                3),
-            Task(
-                'Jogar',
-                'assets/images/game.jpg',
-                1),
-            Task(
-                'Ler',
-                'assets/images/ler.jpg',
-                4),
-            SizedBox(height: 80,)
-          ],
+        actions: [
+          IconButton(
+            onPressed: () {
+              setState(() {
+                level();
+              });
+            },
+            icon: const Icon(Icons.autorenew),
+          )
+        ],
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(5),
+                child: SizedBox(
+                  width: 200,
+                  child: LinearProgressIndicator(
+                    color: Colors.white,
+                    value: levelTotal / barra(),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(5),
+                child: Text(
+                  'Level: $levelTotal',
+                  style: const TextStyle(color: Colors.white, fontSize: 16),
+                ),
+              ),
+            ],
+          ),
         ),
+      ),
+      body: ListView(
+        padding: const EdgeInsets.only(top: 8, bottom: 70),
+        children: TaskInherted.of(context).taskList,
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          setState(() {
-            opacidade = !opacidade;
-          });
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (contextNew) => FormScreen(
+                taskContext: context,
+              ),
+            ),
+          );
         },
-        child: const Icon(Icons.remove_red_eye),
+        child: const Icon(Icons.add),
       ),
     );
   }
